@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  rabbit-mq-node-1:
+    image: rabbitmq:${MQ_VERSION}
+    env_file:
+      - .env
+    hostname: rabbit-mq-node-1
+    restart: always
+    
+    environment:
+        - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+        - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbit-mq-node-1:/var/lib/rabbitmq
+      - ./cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+#    networks:
+#      - middleware-net1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  rabbit-mq-node-2:
+    image: rabbitmq:${MQ_VERSION}
+    env_file:
+      - .env
+    hostname: rabbit-mq-node-2
+    restart: always
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - JOIN_CLUSTER_HOST=rabbit-mq-node-1
+    depends_on:
+      - rabbit-mq-node-1
+    volumes:
+      - rabbit-mq-node-2:/var/lib/rabbitmq
+      - ./cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+#    networks:
+#      - middleware-net1
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+
+  rabbit-mq-node-3:
+    image: rabbitmq:${MQ_VERSION}
+    hostname: rabbit-mq-node-3
+    env_file:
+      - .env
+    restart: always
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - JOIN_CLUSTER_HOST=rabbit-mq-node-1
+    depends_on:
+      - rabbit-mq-node-1
+    volumes:
+      - rabbit-mq-node-3:/var/lib/rabbitmq
+      - ./cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+#    networks:
+#      - middleware-net1
+    ports:
+      - "5674:5672"
+      - "15674:15672"
+
+#networks:
+#  middleware-net1:
+volumes:
+  rabbit-mq-node-1:
+  rabbit-mq-node-2:
+  rabbit-mq-node-3:
+
